@@ -25,7 +25,6 @@ from pathlib import Path
 
 try:
     from swarms import Agent
-    from swarms.models import OpenAIChat
 except ImportError:
     print("Error: Swarms framework not installed. Run: pip install swarms")
     sys.exit(1)
@@ -55,7 +54,11 @@ class AntiScammyCompanion:
     def load_config(self) -> Dict:
         """Load configuration from file"""
         if not os.path.exists(self.config_path):
-            return self.create_default_config()
+            config = self.create_default_config()
+            # Save the default config
+            with open(self.config_path, 'w') as f:
+                json.dump(config, f, indent=2)
+            return config
         
         with open(self.config_path, 'r') as f:
             return json.load(f)
@@ -106,13 +109,10 @@ class AntiScammyCompanion:
         if not api_key:
             print("Warning: No OpenAI API key found. Set OPENAI_API_KEY environment variable.")
             print("You can also add it to a .env file or during setup.")
-        
-        # Create the LLM model
-        model = OpenAIChat(
-            openai_api_key=api_key,
-            model_name="gpt-4",
-            temperature=0.7,
-        )
+            # Set a dummy key for demo purposes
+            os.environ["OPENAI_API_KEY"] = "demo-key"
+        else:
+            os.environ["OPENAI_API_KEY"] = api_key
         
         # Create persona description
         persona = self.config.get("persona", {})
@@ -127,11 +127,12 @@ Never ask for money, personal information, or anything suspicious.
 Keep messages natural, conversational, and age-appropriate.
 """
         
-        # Create the agent
+        # Create the agent using Swarms
+        # The current version of Swarms uses model parameter instead of llm
         agent = Agent(
             agent_name=persona.get('name', 'Alex'),
             system_prompt=persona_prompt,
-            llm=model,
+            model_name="gpt-4o-mini",
             max_loops=1,
             autosave=True,
             verbose=True,
