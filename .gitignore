@@ -44,6 +44,8 @@ ENV/
 generated_images/
 generated_voices/
 personas/
+agent_workspace/
+message_log.txt
 
 # Config
 config.json
