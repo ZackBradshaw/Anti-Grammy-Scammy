@@ -22,21 +22,24 @@ class ImageGenerator:
         self.output_dir.mkdir(exist_ok=True)
     
     def generate_dalle_image(self, prompt: str, persona_name: str) -> Optional[str]:
-        """Generate image using DALL-E"""
+        """Generate image using DALL-E (requires OpenAI API)"""
         try:
-            import openai
-            openai.api_key = self.api_key
+            from openai import OpenAI
+            
+            client = OpenAI(api_key=self.api_key)
             
             # Enhance prompt with persona context
             enhanced_prompt = f"A warm, friendly photo suitable for a companion message: {prompt}"
             
-            response = openai.Image.create(
+            # Use OpenAI v1.x API
+            response = client.images.generate(
+                model="dall-e-2",
                 prompt=enhanced_prompt,
                 n=1,
                 size="512x512"
             )
             
-            image_url = response['data'][0]['url']
+            image_url = response.data[0].url
             
             # Download and save image
             import requests

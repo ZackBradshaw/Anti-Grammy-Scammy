@@ -100,7 +100,7 @@ class AntiScammyCompanion:
     def save_config(self):
         """Save configuration to file"""
         with open(self.config_path, 'w') as f:
-            json.dump(self.config, indent=2, fp=f)
+            json.dump(self.config, f, indent=2)
     
     def create_agent(self) -> Agent:
         """Create the Swarms agent for the AI companion"""
