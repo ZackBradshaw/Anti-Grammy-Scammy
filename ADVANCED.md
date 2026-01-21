@@ -2,11 +2,12 @@
 
 ## Table of Contents
 1. [Advanced Configuration](#advanced-configuration)
-2. [Image Generation Setup](#image-generation-setup)
-3. [Voice Customization](#voice-customization)
-4. [Scheduling Strategies](#scheduling-strategies)
-5. [Security Best Practices](#security-best-practices)
-6. [Integration with Other Tools](#integration-with-other-tools)
+2. [SMS/Text Messaging Setup](#smstext-messaging-setup)
+3. [Image Generation Setup](#image-generation-setup)
+4. [Voice Customization](#voice-customization)
+5. [Scheduling Strategies](#scheduling-strategies)
+6. [Security Best Practices](#security-best-practices)
+7. [Integration with Other Tools](#integration-with-other-tools)
 
 ## Advanced Configuration
 
@@ -43,6 +44,127 @@ Edit the `config.json` file to fine-tune the persona:
   }
 }
 ```
+
+## SMS/Text Messaging Setup
+
+### Getting Started with Twilio
+
+The app uses Twilio to send SMS text messages directly to phone numbers.
+
+1. **Create a Twilio Account**
+   - Visit https://www.twilio.com/
+   - Sign up for a free account (includes free trial credit)
+   - Verify your email and phone number
+
+2. **Get Your Credentials**
+   - From the Twilio Console dashboard, find:
+     - **Account SID**: `ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`
+     - **Auth Token**: Click "View" to see your token
+   
+3. **Get a Phone Number**
+   - In Twilio Console, go to Phone Numbers
+   - Click "Buy a number"
+   - Choose a number (free with trial credit)
+   - Note the number in E.164 format: `+1234567890`
+
+4. **Configure Environment Variables**
+   
+   Add to your `.env` file:
+   ```
+   TWILIO_ACCOUNT_SID=ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+   TWILIO_AUTH_TOKEN=your_auth_token_here
+   TWILIO_PHONE_NUMBER=+1234567890
+   ```
+
+5. **Run Setup**
+   ```bash
+   python anti_scammy.py --setup
+   ```
+   
+   When prompted:
+   - Enable SMS text messaging: `yes`
+   - Enter recipient phone number: `+1234567890` (E.164 format)
+
+6. **Test the Configuration**
+   ```bash
+   python anti_scammy.py --test-sms
+   ```
+
+### Phone Number Formats
+
+The SMS module supports multiple phone number formats:
+
+- **E.164 format** (recommended): `+1234567890`
+- **US 10-digit**: `2345678900` (auto-converted to +1234567890)
+- **Formatted**: `(234) 567-8900` or `234-567-8900` (cleaned automatically)
+
+### SMS Usage Modes
+
+**Automatic with Scheduler:**
+```bash
+python anti_scammy.py --run
+```
+Messages are automatically sent via SMS at scheduled times.
+
+**Manual with Message Command:**
+```bash
+python anti_scammy.py --message
+```
+Generates a message and prompts if you want to send via SMS.
+
+**Programmatic Usage:**
+```python
+from anti_scammy import AntiScammyCompanion
+
+companion = AntiScammyCompanion()
+message = companion.generate_message()
+
+# Send via SMS
+if companion.send_sms_message(message):
+    print("SMS sent!")
+```
+
+### SMS Module API
+
+The `sms_sender.py` module can be used independently:
+
+```python
+from sms_sender import SMSSender
+
+# Initialize
+sender = SMSSender(
+    account_sid="ACxxx...",
+    auth_token="your_token",
+    from_number="+1234567890"
+)
+
+# Check configuration
+if sender.is_configured():
+    # Send message
+    sender.send_sms("+10987654321", "Hello from AI companion!")
+    
+# Validate phone number
+if sender.validate_phone_number("+1234567890"):
+    print("Valid number")
+```
+
+### Troubleshooting SMS
+
+**"SMS not configured"**
+- Check `.env` file has all three Twilio variables
+- Verify credentials are correct in Twilio Console
+- Run `python anti_scammy.py --test-sms` to diagnose
+
+**"Failed to send SMS"**
+- Verify recipient number is verified (required for trial accounts)
+- Check Twilio account has credit
+- Ensure phone number is in correct format
+- Check Twilio Console logs for detailed error
+
+**Trial Account Limitations**
+- Must verify recipient phone numbers
+- Limited to verified numbers only
+- Add credit to remove restrictions
 
 ## Image Generation Setup
 
@@ -210,25 +332,9 @@ The app is designed to protect privacy:
 
 ## Integration with Other Tools
 
-### SMS Integration (with Twilio)
+### Built-in SMS/Text Messaging
 
-Send messages via SMS:
-
-```python
-from twilio.rest import Client
-
-account_sid = 'your_account_sid'
-auth_token = 'your_auth_token'
-client = Client(account_sid, auth_token)
-
-message = companion.generate_message()
-
-client.messages.create(
-    body=message,
-    from_='+1234567890',
-    to='+0987654321'
-)
-```
+The app has built-in SMS support via Twilio. See the [SMS/Text Messaging Setup](#smstext-messaging-setup) section above for complete instructions.
 
 ### Email Integration
 

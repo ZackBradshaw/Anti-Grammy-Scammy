@@ -6,6 +6,7 @@ Get Anti-Grammy-Scammy up and running in 5 minutes!
 
 - Python 3.8 or higher
 - OpenAI API key (get one at https://platform.openai.com/)
+- (Optional) Twilio account for SMS/text messaging
 - 5 minutes of your time
 
 ## Installation
@@ -35,6 +36,13 @@ Edit `.env` and add your OpenAI API key:
 OPENAI_API_KEY=sk-your-key-here
 ```
 
+**Optional - For SMS/Text Messaging:**
+```
+TWILIO_ACCOUNT_SID=your_account_sid
+TWILIO_AUTH_TOKEN=your_auth_token
+TWILIO_PHONE_NUMBER=+1234567890
+```
+
 ### Step 3: Run Setup Wizard
 
 ```bash
@@ -44,6 +52,7 @@ python anti_scammy.py --setup
 Follow the prompts to configure:
 - Your companion's name and personality
 - Message schedule
+- SMS/text messaging (optional)
 - Cash App payment protection (optional)
 
 ## Quick Examples
@@ -72,6 +81,16 @@ python anti_scammy.py --run
 This will send messages at your configured times (e.g., morning, afternoon, evening).
 
 Press `Ctrl+C` to stop.
+
+### Test SMS Setup
+
+If you enabled SMS, test it:
+
+```bash
+python anti_scammy.py --test-sms
+```
+
+This sends a test message to verify your Twilio configuration.
 
 ## See It In Action
 
@@ -102,6 +121,11 @@ After setup, you'll have a `config.json` file. Here's what it looks like:
   "schedule": {
     "morning_message": "08:00",
     "evening_message": "19:00"
+  },
+  "sms": {
+    "enabled": true,
+    "phone_number": "+1234567890",
+    "send_via_sms": true
   },
   "payment": {
     "cashapp_tag": "$YourCashApp",
