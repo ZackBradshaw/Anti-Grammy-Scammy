@@ -16,6 +16,7 @@ Romance scams targeting the elderly are a serious problem. This app provides a s
 
 - **🤖 AI-Powered Persona**: Customizable boyfriend/girlfriend with unique personality, interests, and backstory
 - **📱 Scheduled Messages**: Configurable message frequency (morning, afternoon, evening)
+- **📲 SMS/Text Messaging**: Send messages directly to phone numbers via Twilio
 - **🎨 Image Generation**: AI-generated images (requires setup)
 - **🎤 Voice Messages**: Text-to-speech capabilities for audio messages
 - **💰 Payment Protection**: Redirect "gifts" to user's own Cash App (prevents money going to scammers)
@@ -27,6 +28,7 @@ Romance scams targeting the elderly are a serious problem. This app provides a s
 - Python 3.8+
 - OpenAI API key
 - Internet connection
+- (Optional) Twilio account for SMS/text messaging
 
 ## 🚀 Installation
 
@@ -63,6 +65,7 @@ python anti_scammy.py --setup
 This will guide you through:
 - Creating a persona (name, age, personality, interests)
 - Setting message schedules
+- Enabling SMS/text messaging
 - Enabling image/voice generation
 - Configuring Cash App payment protection
 - Adding API keys
@@ -85,6 +88,12 @@ python anti_scammy.py --message
 Use a custom configuration file:
 ```bash
 python anti_scammy.py --config my_config.json --run
+```
+
+### Test SMS Configuration
+Test your SMS/text messaging setup:
+```bash
+python anti_scammy.py --test-sms
 ```
 
 ## 📝 Configuration
@@ -113,6 +122,11 @@ The `config.json` file contains all settings:
     "image_frequency": "daily",
     "voice_frequency": "weekly"
   },
+  "sms": {
+    "enabled": false,
+    "phone_number": "+1234567890",
+    "send_via_sms": false
+  },
   "payment": {
     "cashapp_tag": "$YourCashApp",
     "enabled": true
@@ -129,6 +143,22 @@ The `config.json` file contains all settings:
 5. **No Red Flags**: Never exhibits typical scammer behaviors (urgency, secrecy, financial pressure)
 
 ## 🎨 Advanced Features
+
+### SMS/Text Messaging
+Send messages directly to a phone number using Twilio:
+
+1. **Sign up for Twilio**: Visit https://www.twilio.com/ and create an account
+2. **Get credentials**: Find your Account SID, Auth Token, and get a Twilio phone number
+3. **Configure environment**: Add to your `.env` file:
+   ```
+   TWILIO_ACCOUNT_SID=your_account_sid
+   TWILIO_AUTH_TOKEN=your_auth_token
+   TWILIO_PHONE_NUMBER=+1234567890
+   ```
+4. **Enable in setup**: Run `python anti_scammy.py --setup` and enable SMS
+5. **Test it**: Run `python anti_scammy.py --test-sms` to verify
+
+Once configured, messages will be automatically sent via SMS when scheduled or generated.
 
 ### Image Generation
 To enable image generation, you'll need to set up DALL-E or Stability AI:

@@ -44,6 +44,7 @@ class AntiScammyCompanion:
         self.config = self.load_config()
         self.setup_directories()
         self.agent = self.create_agent()
+        self.sms_sender = self.setup_sms()
         
     def setup_directories(self):
         """Create necessary directories for generated content"""
@@ -87,12 +88,20 @@ class AntiScammyCompanion:
                 "image_frequency": "daily",
                 "voice_frequency": "weekly"
             },
+            "sms": {
+                "enabled": False,
+                "phone_number": "",
+                "send_via_sms": False
+            },
             "payment": {
                 "cashapp_tag": "",
                 "enabled": False
             },
             "api_keys": {
-                "openai_api_key": os.getenv("OPENAI_API_KEY", "")
+                "openai_api_key": os.getenv("OPENAI_API_KEY", ""),
+                "twilio_account_sid": os.getenv("TWILIO_ACCOUNT_SID", ""),
+                "twilio_auth_token": os.getenv("TWILIO_AUTH_TOKEN", ""),
+                "twilio_phone_number": os.getenv("TWILIO_PHONE_NUMBER", "")
             }
         }
         return config
@@ -141,6 +150,42 @@ Keep messages natural, conversational, and age-appropriate.
         )
         
         return agent
+    
+    def setup_sms(self):
+        """Set up SMS sender if configured"""
+        try:
+            from sms_sender import SMSSender
+            
+            api_keys = self.config.get("api_keys", {})
+            account_sid = api_keys.get("twilio_account_sid") or os.getenv("TWILIO_ACCOUNT_SID")
+            auth_token = api_keys.get("twilio_auth_token") or os.getenv("TWILIO_AUTH_TOKEN")
+            from_number = api_keys.get("twilio_phone_number") or os.getenv("TWILIO_PHONE_NUMBER")
+            
+            return SMSSender(account_sid, auth_token, from_number)
+        except ImportError:
+            print("SMS sender module not available")
+            return None
+        except Exception as e:
+            print(f"Error setting up SMS: {e}")
+            return None
+    
+    def send_sms_message(self, message: str) -> bool:
+        """Send message via SMS if configured"""
+        sms_config = self.config.get("sms", {})
+        
+        if not sms_config.get("enabled") or not sms_config.get("send_via_sms"):
+            return False
+        
+        phone_number = sms_config.get("phone_number")
+        if not phone_number:
+            print("No phone number configured for SMS")
+            return False
+        
+        if not self.sms_sender or not self.sms_sender.is_configured():
+            print("SMS not configured. Please set Twilio credentials in .env or config")
+            return False
+        
+        return self.sms_sender.send_sms(phone_number, message)
     
     def generate_message(self, context: str = "") -> str:
         """Generate a message from the AI companion"""
@@ -244,6 +289,32 @@ Keep messages natural, conversational, and age-appropriate.
         self.config["content_settings"]["use_images"] = use_images == "yes"
         self.config["content_settings"]["use_voice"] = use_voice == "yes"
         
+        # SMS setup
+        print("\n" + "-"*60)
+        print("SMS/Text Message Setup:\n")
+        print("Enable text messaging to send messages directly to a phone number.")
+        print("Requires Twilio account (sign up at https://www.twilio.com/)\n")
+        
+        enable_sms = input("Enable SMS text messaging? (yes/no) [no]: ").strip().lower() or "no"
+        if enable_sms == "yes":
+            phone_number = input("Phone number to send messages to (e.g., +1234567890): ").strip()
+            
+            # Validate phone number format
+            if phone_number:
+                from sms_sender import SMSSender
+                sender = SMSSender()
+                if not sender.validate_phone_number(phone_number):
+                    print("Warning: Phone number format may be invalid. Use E.164 format (e.g., +1234567890)")
+                
+                self.config["sms"]["enabled"] = True
+                self.config["sms"]["phone_number"] = phone_number
+                self.config["sms"]["send_via_sms"] = True
+                
+                print("\nNote: You'll also need to set these in your .env file:")
+                print("  TWILIO_ACCOUNT_SID=your_account_sid")
+                print("  TWILIO_AUTH_TOKEN=your_auth_token")
+                print("  TWILIO_PHONE_NUMBER=your_twilio_number")
+        
         # Payment setup
         print("\n" + "-"*60)
         print("Payment Protection Setup:\n")
@@ -292,6 +363,15 @@ Keep messages natural, conversational, and age-appropriate.
             print("-" * 60)
             print(message)
             print("-" * 60)
+            
+            # Send via SMS if enabled
+            sms_config = self.config.get("sms", {})
+            if sms_config.get("enabled") and sms_config.get("send_via_sms"):
+                print("\nSending via SMS...")
+                if self.send_sms_message(message):
+                    print("✓ SMS sent successfully")
+                else:
+                    print("✗ SMS sending failed")
             
             # Save to log
             with open("message_log.txt", "a") as f:
@@ -344,6 +424,11 @@ def main():
         help="Generate and display a message now"
     )
     parser.add_argument(
+        "--test-sms",
+        action="store_true",
+        help="Test SMS configuration by sending a test message"
+    )
+    parser.add_argument(
         "--config",
         type=str,
         default="config.json",
@@ -358,6 +443,32 @@ def main():
         companion.interactive_setup()
     elif args.run:
         companion.run_scheduled()
+    elif args.test_sms:
+        print("\nTesting SMS Configuration...\n")
+        
+        sms_config = companion.config.get("sms", {})
+        if not sms_config.get("enabled"):
+            print("SMS is not enabled in configuration.")
+            print("Run: python anti_scammy.py --setup to enable SMS")
+        elif not companion.sms_sender or not companion.sms_sender.is_configured():
+            print("SMS credentials not configured.")
+            print("Please set these environment variables in .env:")
+            print("  TWILIO_ACCOUNT_SID=your_account_sid")
+            print("  TWILIO_AUTH_TOKEN=your_auth_token")
+            print("  TWILIO_PHONE_NUMBER=your_twilio_number")
+        else:
+            phone_number = sms_config.get("phone_number")
+            if not phone_number:
+                print("No phone number configured.")
+                print("Run: python anti_scammy.py --setup to add a phone number")
+            else:
+                print(f"Sending test SMS to {phone_number}...")
+                test_message = f"Hello! This is a test message from {companion.config['persona']['name']}, your AI companion. Everything is working! 💕"
+                
+                if companion.send_sms_message(test_message):
+                    print("\n✓ Test SMS sent successfully!")
+                else:
+                    print("\n✗ Failed to send test SMS")
     elif args.message:
         print("\nGenerating message...\n")
         message = companion.generate_message()
@@ -365,6 +476,16 @@ def main():
         print("="*60)
         print(message)
         print("="*60)
+        
+        # Send via SMS if configured
+        sms_config = companion.config.get("sms", {})
+        if sms_config.get("enabled") and sms_config.get("send_via_sms"):
+            response = input("\nSend this message via SMS? (yes/no): ").strip().lower()
+            if response == "yes":
+                if companion.send_sms_message(message):
+                    print("✓ SMS sent successfully")
+                else:
+                    print("✗ SMS sending failed")
         
         # Optionally generate voice
         if companion.config["content_settings"]["use_voice"]:

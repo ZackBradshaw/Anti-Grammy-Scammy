@@ -20,11 +20,19 @@
     "image_frequency": "daily",
     "voice_frequency": "weekly"
   },
+  "sms": {
+    "enabled": false,
+    "phone_number": "",
+    "send_via_sms": false
+  },
   "payment": {
     "cashapp_tag": "",
     "enabled": false
   },
   "api_keys": {
-    "openai_api_key": ""
+    "openai_api_key": "",
+    "twilio_account_sid": "",
+    "twilio_auth_token": "",
+    "twilio_phone_number": ""
   }
 }
