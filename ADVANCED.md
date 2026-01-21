@@ -2,12 +2,13 @@
 
 ## Table of Contents
 1. [Advanced Configuration](#advanced-configuration)
-2. [SMS/Text Messaging Setup](#smstext-messaging-setup)
-3. [Image Generation Setup](#image-generation-setup)
-4. [Voice Customization](#voice-customization)
-5. [Scheduling Strategies](#scheduling-strategies)
-6. [Security Best Practices](#security-best-practices)
-7. [Integration with Other Tools](#integration-with-other-tools)
+2. [Payment Protection Behavior](#payment-protection-behavior)
+3. [SMS/Text Messaging Setup](#smstext-messaging-setup)
+4. [Image Generation Setup](#image-generation-setup)
+5. [Voice Customization](#voice-customization)
+6. [Scheduling Strategies](#scheduling-strategies)
+7. [Security Best Practices](#security-best-practices)
+8. [Integration with Other Tools](#integration-with-other-tools)
 
 ## Advanced Configuration
 
@@ -44,6 +45,75 @@ Edit the `config.json` file to fine-tune the persona:
   }
 }
 ```
+
+## Payment Protection Behavior
+
+### How It Works
+
+The payment protection feature is designed to be **contextual and natural**, unlike real scammers who constantly ask for money.
+
+**Key Principles:**
+- The AI companion **NEVER randomly asks for money**
+- It **ONLY responds** when the user mentions wanting or needing something
+- It offers to help by having the user send money to buy the item and send it as a gift
+- Money goes to the **user's own Cash App** or a family-controlled account
+
+### Example Interactions
+
+**Good - User mentions wanting something:**
+```
+User: I really wish I could get a new warm blanket for winter
+AI: I'd be happy to help you get that! If you'd like, you could send me 
+     the money via my Cash App $YourCashApp and I'll order a nice warm 
+     blanket and have it sent right to you as a gift!
+```
+
+**Good - User mentions needing help:**
+```
+User: My reading lamp broke and I need a new one
+AI: Oh no! Let me help with that. You could send me the money through 
+     Cash App at $YourCashApp and I'll find a good reading lamp and 
+     have it shipped to you!
+```
+
+**Correct - Normal conversation (NO payment mention):**
+```
+User: How was your day?
+AI: It was lovely! I spent some time in the garden today. The tomatoes 
+     are really coming along. How about you?
+```
+
+### Testing Payment Protection
+
+Use the interactive chat mode to test:
+
+```bash
+python anti_scammy.py --chat
+```
+
+**Test scenarios:**
+1. Have a normal conversation - payment should NOT be mentioned
+2. Mention wanting something specific - companion should offer to help
+3. Ask about the companion's day - should respond naturally without asking for money
+
+### Configuration
+
+Enable payment protection in `config.json`:
+
+```json
+{
+  "payment": {
+    "cashapp_tag": "$YourFamilyCashApp",
+    "enabled": true
+  }
+}
+```
+
+When enabled, the AI's system prompt includes instructions to:
+- Listen for mentions of wants/needs
+- Offer to buy and send items as gifts
+- Provide the Cash App tag only in this context
+- Never bring up money otherwise
 
 ## SMS/Text Messaging Setup
 

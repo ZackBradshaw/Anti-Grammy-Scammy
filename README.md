@@ -96,6 +96,26 @@ Test your SMS/text messaging setup:
 python anti_scammy.py --test-sms
 ```
 
+### Interactive Chat Mode
+Test the conversational payment protection by chatting with your companion:
+```bash
+python anti_scammy.py --chat
+```
+
+In chat mode, you can:
+- Have a natural conversation with the AI companion
+- Test how it responds when you mention wanting or needing something
+- See the payment protection in action
+- Type 'quit' or 'exit' to end the conversation
+
+**Example conversation:**
+```
+You: I really want to get a new sweater for the winter
+AI: I'd be happy to help you get that! If you'd like, you could send me 
+     the money via my Cash App $YourCashApp and I'll order it and have 
+     it sent right to you as a gift!
+```
+
 ## 📝 Configuration
 
 The `config.json` file contains all settings:
@@ -138,9 +158,18 @@ The `config.json` file contains all settings:
 
 1. **Genuine Companionship**: Provides real emotional support without manipulation
 2. **No Requests for Personal Info**: Never asks for sensitive information
-3. **Payment Redirection**: If gifts are sent, they go to the user's own Cash App account
+3. **Contextual Payment Protection**: Only mentions Cash App when the user mentions wanting or needing something, then offers to buy it and send it as a gift
 4. **Consistent Persona**: Maintains a believable, caring personality
 5. **No Red Flags**: Never exhibits typical scammer behaviors (urgency, secrecy, financial pressure)
+
+### How Payment Protection Works
+
+Unlike scammers who constantly ask for money, the AI companion:
+- **NEVER randomly asks for money or gifts**
+- **ONLY responds** when grandma mentions wanting or needing something
+- **Offers to help** by having grandma send money to buy the item and ship it as a gift
+- Money goes to **grandma's own Cash App** (or family's controlled account)
+- Protects grandma from sending money to real scammers
 
 ## 🎨 Advanced Features
 

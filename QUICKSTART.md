@@ -92,6 +92,16 @@ python anti_scammy.py --test-sms
 
 This sends a test message to verify your Twilio configuration.
 
+### Interactive Chat Mode
+
+Test the payment protection by having a conversation:
+
+```bash
+python anti_scammy.py --chat
+```
+
+Try mentioning something you want or need, and see how the companion responds with the payment protection feature!
+
 ## See It In Action
 
 ### Demo Mode

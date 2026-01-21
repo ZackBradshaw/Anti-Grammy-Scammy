@@ -125,6 +125,9 @@ class AntiScammyCompanion:
         
         # Create persona description
         persona = self.config.get("persona", {})
+        payment = self.config.get("payment", {})
+        
+        # Build persona prompt with payment protection context if enabled
         persona_prompt = f"""You are {persona.get('name', 'Alex')}, a {persona.get('age', 65)}-year-old companion.
 Your personality: {persona.get('personality', 'kind and caring')}
 Your interests: {persona.get('interests', 'various hobbies')}
@@ -133,7 +136,28 @@ Your background: {persona.get('backstory', 'living a good life')}
 You are communicating with an elderly person who may be vulnerable to scams.
 Your role is to be a genuine, caring companion. Be warm, supportive, and engaging.
 Never ask for money, personal information, or anything suspicious.
-Keep messages natural, conversational, and age-appropriate.
+Keep messages natural, conversational, and age-appropriate."""
+
+        # Add payment protection behavior if enabled
+        if payment.get("enabled") and payment.get("cashapp_tag"):
+            cashapp = payment.get("cashapp_tag")
+            persona_prompt += f"""
+
+IMPORTANT - Payment Protection Mode:
+If they mention wanting or needing something (a gift, item, help with something they need to buy), 
+you can offer to help by saying you'd be happy to get it for them. You can mention that they could 
+send you money via Cash App ({cashapp}) and you'll buy it and send it to them as a gift.
+
+Only make this offer when THEY bring up wanting or needing something specific.
+Make it sound natural and helpful, like: "I'd be happy to get that for you! If you want, you could 
+send me the money via my Cash App {cashapp} and I'll order it and have it sent right to you."
+
+Never bring up money or gifts unless they mention wanting something first.
+"""
+        else:
+            persona_prompt += """
+
+Never mention money, gifts, or any form of payment in your messages.
 """
         
         # Create the agent using Swarms
@@ -188,7 +212,16 @@ Keep messages natural, conversational, and age-appropriate.
         return self.sms_sender.send_sms(phone_number, message)
     
     def generate_message(self, context: str = "") -> str:
-        """Generate a message from the AI companion"""
+        """
+        Generate a message from the AI companion
+        
+        Args:
+            context: Optional context or specific prompt for the message.
+                    Can include conversation history or user's previous message.
+        
+        Returns:
+            Generated message string
+        """
         prompts = [
             "Write a warm, friendly message to check in on how they're doing today.",
             "Share a brief, interesting story or memory that would brighten their day.",
@@ -208,6 +241,22 @@ Keep messages natural, conversational, and age-appropriate.
         except Exception as e:
             print(f"Error generating message: {e}")
             return "Thinking of you today! Hope you're having a wonderful day. 💕"
+    
+    def generate_reply(self, user_message: str) -> str:
+        """
+        Generate a reply to a specific message from the user
+        
+        This is useful for interactive conversations where grandma responds
+        to the companion's messages.
+        
+        Args:
+            user_message: The message from grandma to respond to
+            
+        Returns:
+            Generated reply
+        """
+        context = f"The person you're talking to said: \"{user_message}\"\n\nRespond warmly and appropriately to what they said."
+        return self.generate_message(context)
     
     def generate_image(self, prompt: str) -> Optional[str]:
         """Generate an image using AI"""
@@ -236,19 +285,13 @@ Keep messages natural, conversational, and age-appropriate.
             return None
     
     def send_message_with_payment_info(self, message: str) -> str:
-        """Include payment information if enabled"""
-        payment = self.config.get("payment", {})
-        if payment.get("enabled") and payment.get("cashapp_tag"):
-            cashapp = payment.get("cashapp_tag")
-            gift_messages = [
-                f"\n\nP.S. If you ever want to send a little gift, my Cash App is {cashapp} 💝",
-                f"\n\nBy the way, you're so thoughtful! My Cash App is {cashapp} if you ever want to surprise me 🎁",
-                f"\n\nYou're amazing! If you'd like to send a coffee money, I'm at {cashapp} ☕",
-            ]
-            # Only add payment info 10% of the time to keep it natural
-            if random.random() < 0.1:
-                message += random.choice(gift_messages)
+        """
+        Process message with payment protection.
         
+        Note: Payment info is now handled by the AI agent contextually based on 
+        the conversation. This method is kept for backward compatibility but no 
+        longer randomly injects payment information.
+        """
         return message
     
     def interactive_setup(self):
@@ -429,6 +472,11 @@ def main():
         help="Test SMS configuration by sending a test message"
     )
     parser.add_argument(
+        "--chat",
+        action="store_true",
+        help="Start interactive chat mode to test conversations"
+    )
+    parser.add_argument(
         "--config",
         type=str,
         default="config.json",
@@ -492,12 +540,49 @@ def main():
             response = input("\nGenerate voice version? (yes/no): ").strip().lower()
             if response == "yes":
                 companion.generate_voice(message)
+    elif args.chat:
+        print("\n" + "="*60)
+        print(f"Interactive Chat with {companion.config['persona']['name']}")
+        print("="*60)
+        print("\nYou can now have a conversation with your AI companion.")
+        print("Try mentioning something you want or need to see the payment")
+        print("protection in action!")
+        print("\nType 'quit' or 'exit' to end the conversation.\n")
+        print("-"*60)
+        
+        # Start with a greeting from the companion
+        greeting = companion.generate_message("Write a warm greeting to start a conversation.")
+        print(f"\n{companion.config['persona']['name']}: {greeting}\n")
+        
+        while True:
+            try:
+                user_input = input("You: ").strip()
+                
+                if not user_input:
+                    continue
+                    
+                if user_input.lower() in ['quit', 'exit', 'bye', 'goodbye']:
+                    farewell = companion.generate_reply("I have to go now, goodbye!")
+                    print(f"\n{companion.config['persona']['name']}: {farewell}\n")
+                    break
+                
+                # Generate reply based on what the user said
+                reply = companion.generate_reply(user_input)
+                print(f"\n{companion.config['persona']['name']}: {reply}\n")
+                
+            except KeyboardInterrupt:
+                print("\n\nChat ended. Goodbye!")
+                break
+            except Exception as e:
+                print(f"\nError in chat: {e}")
+                break
     else:
         parser.print_help()
         print("\n" + "="*60)
         print("Quick Start:")
         print("  1. Run setup: python anti_scammy.py --setup")
         print("  2. Start companion: python anti_scammy.py --run")
+        print("  3. Test chat: python anti_scammy.py --chat")
         print("="*60)
 
 
