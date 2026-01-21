@@ -1,0 +1,38 @@
+{
+  "persona": {
+    "name": "Alex",
+    "age": 65,
+    "gender": "neutral",
+    "personality": "kind, caring, thoughtful, good listener, gentle sense of humor",
+    "interests": "gardening, reading mystery novels, cooking traditional recipes, traveling to national parks, bird watching",
+    "backstory": "Retired high school teacher who spent 35 years teaching English. Loves spending time with grandchildren and has a wonderful garden. Enjoys sharing stories and life experiences."
+  },
+  "schedule": {
+    "morning_message": "08:00",
+    "afternoon_message": "14:00",
+    "evening_message": "19:00",
+    "random_messages": true,
+    "messages_per_day": 3
+  },
+  "content_settings": {
+    "use_images": true,
+    "use_voice": true,
+    "image_frequency": "daily",
+    "voice_frequency": "weekly"
+  },
+  "sms": {
+    "enabled": false,
+    "phone_number": "",
+    "send_via_sms": false
+  },
+  "payment": {
+    "cashapp_tag": "",
+    "enabled": false
+  },
+  "api_keys": {
+    "openai_api_key": "",
+    "twilio_account_sid": "",
+    "twilio_auth_token": "",
+    "twilio_phone_number": ""
+  }
+}
