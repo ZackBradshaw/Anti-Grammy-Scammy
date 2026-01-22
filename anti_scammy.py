@@ -103,6 +103,11 @@ class AntiScammyCompanion:
                 "twilio_auth_token": os.getenv("TWILIO_AUTH_TOKEN", ""),
                 "twilio_phone_number": os.getenv("TWILIO_PHONE_NUMBER", "")
             }
+            ,
+            "model": {
+                "name": "gpt-4o-mini",
+                "baseurl": ""
+            }
         }
         return config
     
@@ -161,11 +166,20 @@ Never mention money, gifts, or any form of payment in your messages.
 """
         
         # Create the agent using Swarms
-        # The current version of Swarms uses model parameter instead of llm
+        # Read model configuration (allows custom model name and base URL)
+        model_config = self.config.get("model", {})
+        model_name = model_config.get("name", "gpt-4o-mini")
+        model_baseurl = model_config.get("baseurl") or os.getenv("MODEL_BASE_URL") or os.getenv("OPENAI_API_BASE")
+
+        # If a custom base URL is provided, set the environment variable
+        # many SDKs (and Swarms/OpenAI clients) respect `OPENAI_API_BASE`.
+        if model_baseurl:
+            os.environ["OPENAI_API_BASE"] = model_baseurl
+
         agent = Agent(
             agent_name=persona.get('name', 'Alex'),
             system_prompt=persona_prompt,
-            model_name="gpt-4o-mini",
+            model_name=model_name,
             max_loops=1,
             autosave=True,
             verbose=True,

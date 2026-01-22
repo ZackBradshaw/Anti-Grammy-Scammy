@@ -35,4 +35,9 @@
     "twilio_auth_token": "",
     "twilio_phone_number": ""
   }
+  ,
+  "model": {
+    "name": "gpt-4o-mini",
+    "baseurl": ""
+  }
 }
