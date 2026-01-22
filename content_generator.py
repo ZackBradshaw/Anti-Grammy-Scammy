@@ -14,10 +14,25 @@ from pathlib import Path
 
 
 class ImageGenerator:
-    """Handle image generation for the AI companion"""
-    
-    def __init__(self, api_key: Optional[str] = None):
+    """Handle image generation for the AI companion
+
+    Supports custom model names and OpenAI-compatible base URLs (for self-hosted
+    or third-party endpoints) via constructor args or environment variables:
+    - `model_name` or `MODEL_NAME` env var (default: "dall-e-2")
+    - `baseurl` or `MODEL_BASE_URL` / `OPENAI_API_BASE` env var
+    """
+
+    def __init__(self, api_key: Optional[str] = None, model_name: Optional[str] = None, baseurl: Optional[str] = None):
         self.api_key = api_key or os.getenv("OPENAI_API_KEY")
+        # Allow overriding the image model (useful for custom deployments)
+        self.model_name = model_name or os.getenv("MODEL_NAME") or "dall-e-2"
+        # Allow specifying a custom OpenAI-compatible base URL
+        self.baseurl = baseurl or os.getenv("MODEL_BASE_URL") or os.getenv("OPENAI_API_BASE") or ""
+
+        # If a custom base URL is provided, set the env var many SDKs respect
+        if self.baseurl:
+            os.environ["OPENAI_API_BASE"] = self.baseurl
+
         self.output_dir = Path("generated_images")
         self.output_dir.mkdir(exist_ok=True)
     
@@ -26,6 +41,7 @@ class ImageGenerator:
         try:
             from openai import OpenAI
             
+            # Create client. SDKs will pick up `OPENAI_API_BASE` if set above.
             client = OpenAI(api_key=self.api_key)
             
             # Enhance prompt with persona context
@@ -33,7 +49,7 @@ class ImageGenerator:
             
             # Use OpenAI v1.x API
             response = client.images.generate(
-                model="dall-e-2",
+                model=self.model_name,
                 prompt=enhanced_prompt,
                 n=1,
                 size="512x512"
